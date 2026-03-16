@@ -62,8 +62,8 @@ PanelWindow {
                         ResourceTab {
                         }
 
-                        //MusicTab {
-                        //}
+                        MusicTab {
+                        }
 
                     }
 
