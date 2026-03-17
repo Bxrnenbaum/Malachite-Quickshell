@@ -1,5 +1,6 @@
 import "../"
 import "../gauges"
+import "../other"
 import Qt5Compat.GraphicalEffects
 import QtQuick
 import QtQuick.Controls
@@ -16,13 +17,8 @@ Item {
         return p.playbackState === MprisPlaybackState.Playing;
     }) ?? (Mpris.players.values[0] ?? null)
 
-    anchors.fill: parent
 
     Connections {
-        function onValuesChanged() {
-            playerCountText.text = Mpris.players.values.length + " players found";
-        }
-
         target: Mpris.players
     }
 
@@ -54,7 +50,9 @@ Item {
         repeat: true
         onTriggered: {
             if (player) {
-                currentPositionText.text = `${Math.floor(player.position / 60)}:${Math.round(player.position) % 60 }`;
+                const secs = Math.round(player.position) % 60;
+                const mins = Math.floor(player.position / 60);
+                currentPositionText.text = `${mins}:${secs < 10 ? "0" + secs : secs}`;
                 progressBar.value = (player.position / player.length);
             }
         }
@@ -68,18 +66,56 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             width: parent.width
 
-            Item {
+            ColumnLayout {
                 Layout.preferredWidth: 200
-                Layout.alignment: Qt.AlignVCenter
+                Layout.alignment: Qt.AlignHCenter
+                Layout.fillHeight: true
 
-                Text {
+                Item {
+                    Layout.fillHeight: true
+                }
+
+                Image {
+                    id: previousIcon
+
+                    Layout.preferredWidth: 61
+                    Layout.preferredHeight: 61
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                    source: "../images/backward-step.svg"
+                    visible: true
+                    fillMode: Image.PreserveAspectFit
+                    sourceSize.width: width
+                    layer.enabled: true
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            if (player.position > 3)
+                                player.position = 0;
+                            else
+                                player.previous();
+                        }
+                    }
+
+                    layer.effect: ColorOverlay {
+                        color: Theme.iconMain
+                    }
+
+                }
+
+                Item {
+                    Layout.fillHeight: true
+                }
+
+                ScrollingText {
                     id: titleText
 
-                    anchors.centerIn: parent
+                    Layout.alignment: Qt.AlignBottom | Qt.AlignHCenter
+                    maxWidth: 180
                     text: player ? player.trackTitle : "Nothing playing"
                     font.family: Theme.fontFamily
                     font.pixelSize: 18
-                    font.weight: font.Bold
+                    font.weight: Font.Bold
                     color: Theme.widgetText
                 }
 
@@ -90,8 +126,8 @@ Item {
                 id: coverWrapper
 
                 Layout.alignment: Qt.AlignVCenter
-                width: 200
-                height: 200
+                width: 201
+                height: 201
 
                 Image {
                     id: cover
@@ -113,6 +149,18 @@ Item {
                     layer.enabled: true
                 }
 
+                Rectangle {
+                    id: backgroundCircle
+
+                    anchors.centerIn: parent
+                    color: Theme.widgetBg
+
+                    width: cover.width + 10
+                    height: cover.height + 10
+                    radius: width / 2
+                    visible: true
+                }
+
                 OpacityMask {
                     source: cover
                     maskSource: mask
@@ -131,6 +179,16 @@ Item {
                     target: player
                 }
 
+                MouseArea {
+                    anchors.fill: cover
+                    onClicked: {
+                        if (player.playbackState === MprisPlaybackState.Playing)
+                            player.pause();
+                        else
+                            player.play();
+                    }
+                }
+
                 RotationAnimation on rotation {
                     id: spinAnimation
 
@@ -143,18 +201,53 @@ Item {
 
             }
 
-            Item {
+            ColumnLayout {
                 Layout.preferredWidth: 200
-                Layout.alignment: Qt.AlignVCenter
+                Layout.alignment: Qt.AlignHCenter
+                Layout.fillHeight: true
 
-                Text {
+                Item {
+                    Layout.fillHeight: true
+                }
+
+                Image {
+                    id: nextIcon
+
+                    Layout.preferredWidth: 61
+                    Layout.preferredHeight: 61
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                    source: "../images/forward-step.svg"
+                    visible: true
+                    fillMode: Image.PreserveAspectFit
+                    sourceSize.width: width
+                    layer.enabled: true
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            player.next();
+                        }
+                    }
+
+                    layer.effect: ColorOverlay {
+                        color: Theme.iconMain
+                    }
+
+                }
+
+                Item {
+                    Layout.fillHeight: true
+                }
+
+                ScrollingText {
                     id: artistText
 
-                    anchors.centerIn: parent
+                    Layout.alignment: Qt.AlignBottom | Qt.AlignHCenter
+                    maxWidth: 180
                     text: player ? player.trackArtist : ""
                     font.family: Theme.fontFamily
                     font.pixelSize: 18
-                    font.weight: font.Bold
+                    font.weight: Font.Bold
                     color: Theme.widgetText
                 }
 
@@ -168,10 +261,17 @@ Item {
             Text {
                 id: currentPositionText
 
-                text: player ? `${Math.floor(player.position / 60)}:${Math.round(player.position) % 60 }` : ""
+                text: {
+                    if (!player)
+                        return "";
+
+                    const secs = Math.round(player.position) % 60;
+                    const mins = Math.floor(player.position / 60);
+                    return `${mins}:${secs < 10 ? "0" + secs : secs}`;
+                }
                 font.family: Theme.fontFamily
                 font.pixelSize: 18
-                font.weight: font.Bold
+                font.weight: Font.Bold
                 color: Theme.widgetText
             }
 
@@ -204,7 +304,7 @@ Item {
 
                 Behavior on value {
                     NumberAnimation {
-                        duration: mainTimer.interval // match your timer interval
+                        duration: mainTimer.interval
                         easing.type: Easing.Linear
                     }
 
@@ -215,10 +315,17 @@ Item {
             Text {
                 id: maxPositionText
 
-                text: `${Math.floor(player.length / 60)}:${Math.round(player.length) % 60}`
+                text: {
+                    if (!player)
+                        return "";
+
+                    const secs = Math.round(player.length) % 60;
+                    const mins = Math.floor(player.position / 60);
+                    return `${mins}:${secs < 10 ? "0" + secs : secs}`;
+                }
                 font.family: Theme.fontFamily
                 font.pixelSize: 18
-                font.weight: font.Bold
+                font.weight: Font.Bold
                 color: Theme.widgetText
             }
 
