@@ -17,7 +17,6 @@ Item {
         return p.playbackState === MprisPlaybackState.Playing;
     }) ?? (Mpris.players.values[0] ?? null)
 
-
     Connections {
         target: Mpris.players
     }
@@ -125,9 +124,38 @@ Item {
             Item {
                 id: coverWrapper
 
+                property var cavaBars: []
+
                 Layout.alignment: Qt.AlignVCenter
                 width: 201
                 height: 201
+
+                Process {
+                    id: cavaProcess
+
+                    command: ["cava", "-p", Qt.resolvedUrl("../cavaConfig").toString().replace("file://", "")]
+                    running: true
+
+                    stdout: SplitParser {
+                        onRead: (data) => {
+                            const values = data.trim().split(";").filter((v) => {
+                                return v !== "";
+                            }).map(Number);
+                            if (values.length > 0)
+                                coverWrapper.cavaBars = values;
+
+                        }
+                    }
+
+                }
+
+                Connections {
+                    function onCavaBarsChanged() {
+                        visualizerCanvas.requestPaint();
+                    }
+
+                    target: coverWrapper
+                }
 
                 Image {
                     id: cover
@@ -147,18 +175,6 @@ Item {
                     radius: width / 2
                     visible: false
                     layer.enabled: true
-                }
-
-                Rectangle {
-                    id: backgroundCircle
-
-                    anchors.centerIn: parent
-                    color: Theme.widgetBg
-
-                    width: cover.width + 10
-                    height: cover.height + 10
-                    radius: width / 2
-                    visible: true
                 }
 
                 OpacityMask {
@@ -186,6 +202,46 @@ Item {
                             player.pause();
                         else
                             player.play();
+                    }
+                }
+
+                Canvas {
+                    id: visualizerCanvas
+
+                    anchors.centerIn: parent
+                    width: 320
+                    height: 320
+                    
+                    //uncomment the line below to stop cava from rotating
+                    // rotation: -coverWrapper.rotation
+
+                    onPaint: {
+                        const ctx = getContext("2d");
+                        ctx.clearRect(0, 0, width, height);
+                        const bars = coverWrapper.cavaBars;
+                        if (!bars || bars.length === 0)
+                            return ;
+
+                        const cx = width / 2;
+                        const cy = height / 2;
+                        const innerRadius = 102; // just outside the cover
+                        const maxBarHeight = 30;
+                        const barCount = bars.length;
+                        const angleStep = (2 * Math.PI) / barCount;
+                        const barWidth = (2 * Math.PI * innerRadius / barCount) * 0.6;
+                        ctx.fillStyle = Theme.usageNormal; // or any color
+                        for (let i = 0; i < barCount; i++) {
+                            const angle = i * angleStep - Math.PI / 2;
+                            const barHeight = (bars[i] / 100) * maxBarHeight;
+                            if (barHeight < 1)
+                                continue;
+
+                            ctx.save();
+                            ctx.translate(cx, cy);
+                            ctx.rotate(angle);
+                            ctx.fillRect(-barWidth / 2, innerRadius, barWidth, barHeight);
+                            ctx.restore();
+                        }
                     }
                 }
 
