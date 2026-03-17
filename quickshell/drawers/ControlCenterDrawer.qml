@@ -41,14 +41,14 @@ PanelWindow {
             height: 300
             y: isOpen ? 0 : -300
             color: Theme.bgMain
-            radius: 12
+            radius: 32
             anchors.horizontalCenter: parent.horizontalCenter
 
                 RowLayout {
                     anchors.fill: parent
 
                     anchors {
-                        topMargin: 30
+                        topMargin: 20
                         leftMargin: 20
                         rightMargin: 20
                         bottomMargin: 20
@@ -62,8 +62,8 @@ PanelWindow {
                         ResourceTab {
                         }
 
-                        //MusicTab {
-                        //}
+                        MusicTab {
+                        }
 
                     }
 
