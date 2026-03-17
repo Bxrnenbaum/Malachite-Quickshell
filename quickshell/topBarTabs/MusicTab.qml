@@ -320,7 +320,7 @@ Item {
                         return "";
 
                     const secs = Math.round(player.length) % 60;
-                    const mins = Math.floor(player.position / 60);
+                    const mins = Math.floor(player.length / 60);
                     return `${mins}:${secs < 10 ? "0" + secs : secs}`;
                 }
                 font.family: Theme.fontFamily
