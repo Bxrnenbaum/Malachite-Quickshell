@@ -54,4 +54,5 @@ This project is licensed under the GNU General Public License v3.0 — see [LICE
 ## Attributions
 
 Icons by [Dazzle UI](https://dazzleui.gumroad.com/l/dazzleiconsfree?ref=svgrepo.com), sourced via [SVG Repo](https://svgrepo.com) — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
 JetBrains Mono font by [JetBrains](https://www.jetbrains.com/legalnotice/) — [SIL Open Font License 1.1](https://scripts.sil.org/OFL)
