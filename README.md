@@ -20,12 +20,15 @@
 
 ## Installation
 
-Run this command to clone the repo and create a symlink to the config location. Make sure to backup existing config files first.
+Run this command to clone the repo and create a symlink to the config location. 
 ```
 git clone https://github.com/Bxrnenbaum/Malachite-Quickshell/
 cd Malachite-Quickshell/
+rm -rf ~/.config/quickshell/
 ln -s "$(pwd)/quickshell" ~/.config/quickshell
 ```
+
+Keep in mind that this completely erases the ~/.config/quickshell folder. Make sure to backup existing config files first.
 
 ## Configuration
 
