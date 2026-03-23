@@ -14,9 +14,10 @@ import Quickshell.Wayland
 
 Item {
     property var player: Mpris.players.values.find((p) => {
+        return p.identity === "Spotify";
+    }) ?? Mpris.players.values.find((p) => {
         return p.playbackState === MprisPlaybackState.Playing;
     }) ?? (Mpris.players.values[0] ?? null)
-
 
     Connections {
         target: Mpris.players
@@ -75,30 +76,52 @@ Item {
                     Layout.fillHeight: true
                 }
 
-                Image {
-                    id: previousIcon
-
-                    Layout.preferredWidth: 61
-                    Layout.preferredHeight: 61
+                Item {
+                    Layout.preferredWidth: 70
+                    Layout.preferredHeight: 70
                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                    source: "../images/backward-step.svg"
-                    visible: true
-                    fillMode: Image.PreserveAspectFit
-                    sourceSize.width: width
-                    layer.enabled: true
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            if (player.position > 3)
-                                player.position = 0;
-                            else
-                                player.previous();
+                    Image {
+                        id: previousIcon
+
+                        property real size: 61
+
+                        anchors.centerIn: parent
+
+                        width: size
+                        height: size
+                        source: "../images/backward-step.svg"
+                        visible: true
+                        fillMode: Image.PreserveAspectFit
+                        sourceSize.width: size
+                        layer.enabled: true
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: {
+                                if (player.position > 3)
+                                    player.position = 0;
+                                else
+                                    player.previous();
+                            }
+                            onContainsMouseChanged: {
+                                previousIcon.size = containsMouse ? 70 : 61;
+                            }
                         }
-                    }
 
-                    layer.effect: ColorOverlay {
-                        color: Theme.iconMain
+                        layer.effect: ColorOverlay {
+                            color: Theme.iconMain
+                        }
+
+                        Behavior on size {
+                            NumberAnimation {
+                                duration: 150
+                                easing.type: Easing.OutExpo
+                            }
+
+                        }
+
                     }
 
                 }
@@ -125,9 +148,38 @@ Item {
             Item {
                 id: coverWrapper
 
+                property var cavaBars: []
+
                 Layout.alignment: Qt.AlignVCenter
                 width: 201
                 height: 201
+
+                Process {
+                    id: cavaProcess
+
+                    command: ["cava", "-p", Qt.resolvedUrl("../cavaConfig").toString().replace("file://", "")]
+                    running: true
+
+                    stdout: SplitParser {
+                        onRead: (data) => {
+                            const values = data.trim().split(";").filter((v) => {
+                                return v !== "";
+                            }).map(Number);
+                            if (values.length > 0)
+                                coverWrapper.cavaBars = values;
+
+                        }
+                    }
+
+                }
+
+                Connections {
+                    function onCavaBarsChanged() {
+                        visualizerCanvas.requestPaint();
+                    }
+
+                    target: coverWrapper
+                }
 
                 Image {
                     id: cover
@@ -149,19 +201,9 @@ Item {
                     layer.enabled: true
                 }
 
-                Rectangle {
-                    id: backgroundCircle
-
-                    anchors.centerIn: parent
-                    color: Theme.widgetBg
-
-                    width: cover.width + 10
-                    height: cover.height + 10
-                    radius: width / 2
-                    visible: true
-                }
-
                 OpacityMask {
+                    id: coverMask
+                    
                     source: cover
                     maskSource: mask
                     width: cover.width
@@ -181,11 +223,62 @@ Item {
 
                 MouseArea {
                     anchors.fill: cover
+                    hoverEnabled: true
                     onClicked: {
                         if (player.playbackState === MprisPlaybackState.Playing)
                             player.pause();
                         else
                             player.play();
+                    }
+
+                    onContainsMouseChanged: {
+                        coverWrapper.scale = containsMouse ? 1.05 : 1
+                    }
+                }
+
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: 200
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                Canvas {
+                    //uncomment the line below to stop cava from rotating
+                    // rotation: -coverWrapper.rotation
+
+                    id: visualizerCanvas
+
+                    anchors.centerIn: parent
+                    width: 320
+                    height: 320
+                    onPaint: {
+                        const ctx = getContext("2d");
+                        ctx.clearRect(0, 0, width, height);
+                        const bars = coverWrapper.cavaBars;
+                        if (!bars || bars.length === 0)
+                            return ;
+
+                        const cx = width / 2;
+                        const cy = height / 2;
+                        const innerRadius = 102;
+                        const maxBarHeight = 30;
+                        const barCount = bars.length;
+                        const angleStep = (2 * Math.PI) / barCount;
+                        const barWidth = (2 * Math.PI * innerRadius / barCount) * 0.6;
+                        ctx.fillStyle = Theme.musicVisualizer;
+                        for (let i = 0; i < barCount; i++) {
+                            const angle = i * angleStep - Math.PI / 2;
+                            const barHeight = (bars[i] / 100) * maxBarHeight;
+                            if (barHeight < 1)
+                                continue;
+
+                            ctx.save();
+                            ctx.translate(cx, cy);
+                            ctx.rotate(angle);
+                            ctx.fillRect(-barWidth / 2, innerRadius, barWidth, barHeight);
+                            ctx.restore();
+                        }
                     }
                 }
 
@@ -210,27 +303,49 @@ Item {
                     Layout.fillHeight: true
                 }
 
-                Image {
-                    id: nextIcon
-
-                    Layout.preferredWidth: 61
-                    Layout.preferredHeight: 61
+                Item {
+                    Layout.preferredWidth: 70
+                    Layout.preferredHeight: 70
                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                    source: "../images/forward-step.svg"
-                    visible: true
-                    fillMode: Image.PreserveAspectFit
-                    sourceSize.width: width
-                    layer.enabled: true
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            player.next();
+                    Image {
+                        id: nextIcon
+
+                        property real size: 61
+
+                        width: size
+                        height: size
+                        anchors.centerIn: parent
+                        source: "../images/forward-step.svg"
+                        visible: true
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                        sourceSize.width: size
+                        layer.enabled: true
+
+                        MouseArea {
+                            hoverEnabled: true
+                            anchors.fill: parent
+                            onClicked: {
+                                player.next();
+                            }
+                            onContainsMouseChanged: {
+                                nextIcon.size = containsMouse ? 70 : 61;
+                            }
                         }
-                    }
 
-                    layer.effect: ColorOverlay {
-                        color: Theme.iconMain
+                        layer.effect: ColorOverlay {
+                            color: Theme.iconMain
+                        }
+
+                        Behavior on size {
+                            NumberAnimation {
+                                duration: 150
+                                easing.type: Easing.OutExpo
+                            }
+
+                        }
+
                     }
 
                 }
@@ -248,7 +363,7 @@ Item {
                     font.family: Theme.fontFamily
                     font.pixelSize: 18
                     font.weight: Font.Bold
-                    color: Theme.widgetText
+                    color: Theme.musicTabText
                 }
 
             }
@@ -278,7 +393,7 @@ Item {
             ProgressBar {
                 id: progressBar
 
-                width: 600
+                width: 700
                 from: 0
                 to: 1
 
