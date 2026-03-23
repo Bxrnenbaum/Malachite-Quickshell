@@ -12,7 +12,7 @@ import Quickshell.Io
 import Quickshell.Services.Pipewire
 import Quickshell.Wayland
 
-Row {
+RowLayout {
 
     CpuGauge {
     }
