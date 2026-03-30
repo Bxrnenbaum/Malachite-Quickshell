@@ -7,7 +7,7 @@
 ## Screenshots
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/37057d97-16b0-442d-a093-a99f41c723ed" />
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/bc39f954-04d6-4c3c-94e4-9b175f504289" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/fe47692d-b6d8-4630-bd48-3b51349957a5" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/29ae2a32-ff1e-4762-877e-e900b439e67a" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f7389565-ed26-427e-9ef4-81ff938eb2b3" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a858a031-ed8e-48ac-9ce0-bbf67b4dd73e" />
@@ -22,6 +22,7 @@
 - Quickshell
 - PipeWire
 - wl-clipboard
+- cava
 - cliphist (following lines are needed in hyprland.conf for cliphist to work properly)
     ```
     exec-once = wl-paste --type text --watch cliphist store
