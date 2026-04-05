@@ -15,12 +15,15 @@ import Quickshell.Wayland
 RowLayout {
 
     CpuGauge {
+        Layout.alignment: Qt.AlignHCenter
     }
 
     RamGauge {
+        Layout.alignment: Qt.AlignHCenter
     }
 
     GpuGauge {
+        Layout.alignment: Qt.AlignHCenter
     }
 
 }

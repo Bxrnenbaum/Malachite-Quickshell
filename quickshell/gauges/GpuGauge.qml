@@ -23,8 +23,8 @@ Item {
 
     }
 
-    width: 220
-    height: 240
+    width: 260
+    height: 280
 
     Process {
         id: gpuPoller
@@ -53,23 +53,23 @@ Item {
         Canvas {
             id: arc
 
-            width: 200
-            height: 200
+            width: 240
+            height: 240
             anchors.horizontalCenter: parent.horizontalCenter
             onPaint: {
                 var ctx = getContext("2d");
                 ctx.clearRect(0, 0, width, height);
-                var cx = width / 2, cy = height / 2, r = 80;
+                var cx = width / 2, cy = height / 2, r = 100;
                 ctx.beginPath();
                 ctx.arc(cx, cy, r, 0, Math.PI * 2);
                 ctx.strokeStyle = Theme.widgetBg;
-                ctx.lineWidth = 18;
+                ctx.lineWidth = 24;
                 ctx.stroke();
                 var sweep = (gpuGauge.gpuPercent / 100) * Math.PI * 2;
                 ctx.beginPath();
                 ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + sweep);
                 ctx.strokeStyle = gpuGauge.gpuPercent > 80 ? Theme.usageVeryHigh : gpuGauge.gpuPercent > 50 ? Theme.usageHigh : Theme.usageNormal;
-                ctx.lineWidth = 18;
+                ctx.lineWidth = 24;
                 ctx.lineCap = "round";
                 ctx.stroke();
             }
@@ -96,9 +96,9 @@ Item {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: "GPU"
-            font.pixelSize: 40
+            font.pixelSize: 50
             color: Theme.widgetText
-            font.weight: Font.Bold
+            font.weight: Font.ExtraBold
             font.family: Theme.fontFamily
         }
 

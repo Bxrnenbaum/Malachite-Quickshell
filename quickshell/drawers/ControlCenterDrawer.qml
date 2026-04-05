@@ -32,75 +32,76 @@ PanelWindow {
             id: centerDrawer
 
             property string activeView: "resources"
-            property bool isOpen: false
+                property bool isOpen: false
 
-            width: 900
-            height: 350
-            y: isOpen ? 0 : -350
-            color: Theme.bgMain
-            radius: 32
-            anchors.horizontalCenter: parent.horizontalCenter
+                    width: 900
+                    height: 350
+                    y: isOpen ? 0 : -350
+                    color: Theme.bgMain
+                    radius: 32
+                    anchors.horizontalCenter: parent.horizontalCenter
 
-            Item {
-                id: tabContainer
+                    Item {
+                        id: tabContainer
 
-                property int tabIndex: 0
+                        property int tabIndex: 0
 
-                anchors.fill: parent
-                anchors.margins: 20
-                clip: true
-                onTabIndexChanged: {
-                    centerDrawer.activeView = ["resources", "music"][tabIndex];
-                }
+                            anchors.fill: parent
+                            anchors.margins: 20
+                            clip: true
+                            onTabIndexChanged: {
+                                centerDrawer.activeView = ["resources", "music"][tabIndex];
+                            }
 
-                ResourceTab {
-                    width: parent.width
-                    height: parent.height
-                    x: (0 - tabContainer.tabIndex) * parent.width
+                            ResourceTab {
+                                width: parent.width
+                                height: parent.height
+                                x: (0 - tabContainer.tabIndex) * parent.width
 
-                    Behavior on x {
-                        NumberAnimation {
-                            duration: 280
-                            easing.type: Easing.OutCubic
+                                Behavior on x {
+                                NumberAnimation {
+                                    duration: 280
+                                    easing.type: Easing.OutCubic
+                                }
+
+                            }
+
+                        }
+
+                        MusicTab {
+                            width: parent.width
+                            height: parent.height
+                            x: (1 - tabContainer.tabIndex) * parent.width
+
+                            Behavior on x {
+                            NumberAnimation {
+                                duration: 280
+                                easing.type: Easing.OutCubic
+                            }
+
                         }
 
                     }
 
-                }
 
-                MusicTab {
-                    width: parent.width
-                    height: parent.height
-                    x: (1 - tabContainer.tabIndex) * parent.width
-
-                    Behavior on x {
-                        NumberAnimation {
-                            duration: 280
-                            easing.type: Easing.OutCubic
-                        }
-
-                    }
-
-                }
-
-
-                WheelHandler {
-                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                    onWheel: (event) => {
-                        if (event.angleDelta.y < 0)
+                    WheelHandler {
+                        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                        onWheel: (event) => {
+                        if (event.angleDelta.y < -15)
                             tabContainer.tabIndex = Math.min(tabContainer.tabIndex + 1, 1);
-                        else
+                        else if (event.angleDelta.y > 15)
                             tabContainer.tabIndex = Math.max(tabContainer.tabIndex - 1, 0);
+                        }
                     }
+
                 }
 
-            }
+                HoverHandler {
+                    id: drawerHover
+                    onHoveredChanged: centerDrawer.isOpen = hovered || stripHover.hovered
+                }
 
-            HoverHandler {
-                onHoveredChanged: centerDrawer.isOpen = hovered
-            }
-
-            Behavior on y {
+                Behavior on y {
                 NumberAnimation {
                     duration: 300
                     easing.type: Easing.OutCubic
@@ -118,7 +119,8 @@ PanelWindow {
             anchors.horizontalCenter: parent.horizontalCenter
 
             HoverHandler {
-                onHoveredChanged: centerDrawer.isOpen = hovered
+                id: stripHover
+                onHoveredChanged: centerDrawer.isOpen = hovered || drawerHover.hovered
             }
 
         }
